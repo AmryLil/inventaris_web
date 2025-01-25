@@ -207,6 +207,19 @@
         window.addEventListener('load', checkWidth);
         window.addEventListener('resize', checkWidth);
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // SweetAlert untuk flash message sukses
+            @if(session('success'))
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: '{{ session("success") }}',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            @endif
+        });
+        </script>
     @yield('scripts')
 </body>
 </html>

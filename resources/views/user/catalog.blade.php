@@ -59,8 +59,7 @@
         <!-- Header -->
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <div style="display: flex;gap: 10px ">
-                <a href="{{ route('cart.show') }}"><i class="fas fa-shopping-cart" style="font-size: 30px"></i></a>
-                <h1 class="h3 mb-0 text-gray-800">Katalog Produk</h1>
+                <a style="padding: 10px" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" href="{{ route('cart.show') }}"><i class="fas fa-shopping-cart" style="font-size: 30px"></i></a>
             </div>
             <form class="d-flex gap-2">
                 <input type="text" name="search" class="form-control" placeholder="Cari produk..." 
@@ -76,16 +75,24 @@
             @forelse($barang as $item)
             <div class="col-12 col-md-6 col-lg-4 col-xl-3">
                 <div class="card h-100">
+                    <!-- Gambar Produk -->
                     <img src="{{ asset('storage/' . $item->putri_gambar) }}" 
                          class="card-img-top"
                          style="height: 200px; object-fit: cover;"
                          alt="{{ $item->putri_nama_barang }}"
                          onerror="this.src='{{ asset('images/placeholder.jpg') }}'">
+        
+                    <!-- Body Card -->
                     <div class="card-body">
+                        <!-- Nama Produk -->
                         <h5 class="card-title text-truncate">{{ $item->putri_nama_barang }}</h5>
+                        
+                        <!-- Informasi Satuan -->
                         <p class="card-text text-muted mb-1">
                             <small>Satuan: {{ $item->putri_satuan }}</small>
                         </p>
+        
+                        <!-- Harga dan Stok -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="fw-bold text-primary">
                                 Rp {{ number_format($item->putri_harga_jual, 0, ',', '.') }}
@@ -94,21 +101,30 @@
                                 Stok: {{ $item->putri_stok }}
                             </span>
                         </div>
-                        <form action="{{ route('cart.add', $item->putri_id_barang) }}" method="POST">
-                            @csrf
-                            <div class="input-group mb-3">
-                                <input type="number" name="quantity" class="form-control" min="1" value="1">
-                                <button class="btn btn-primary" type="submit">                            <i class="fas fa-shopping-cart me-2"></i>
-                                </button>
+        
+                        <!-- Input Quantity dan Tombol -->
+                        <div class="d-flex flex-column gap-2">
+                            <!-- Input Quantity -->
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="quantity-{{ $item->putri_id_barang }}" class="form-label mb-0">
+                                    <small>Jumlah:</small>
+                                </label>
+                                <input type="number" name="quantity" 
+                                       id="quantity-{{ $item->putri_id_barang }}" 
+                                       class="form-control w-50"
+                                       min="1" 
+                                       value="1">
                             </div>
-                        </form>
-                        <button type="button" 
-                            class="btn btn-primary w-100" 
-                            style="cursor: pointer;"
-                            onclick="showOrderModal({{ $item->putri_id_barang }}, '{{ $item->putri_nama_barang }}', {{ $item->putri_stok }}, {{ $item->putri_harga_jual }})"
-                            {{ $item->putri_stok < 1 ? 'disabled' : '' }}>
-                            {{ $item->putri_stok < 1 ? 'Stok Habis' : 'Pesan Sekarang' }}
-                        </button>
+        
+                            <!-- Tombol Tambah ke Keranjang -->
+                            <form action="{{ route('cart.add', $item->putri_id_barang) }}" method="POST" class="mt-2" id="add-to-cart-form-{{ $item->putri_id_barang }}">
+                                @csrf
+                                <button type="button" class="btn btn-primary w-100 d-flex align-items-center justify-content-center add-to-cart" 
+                                        data-id="{{ $item->putri_id_barang }}">
+                                    <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -120,6 +136,7 @@
             </div>
             @endforelse
         </div>
+        
 
         <!-- Pagination -->
         <div class="d-flex justify-content-end mt-4">
@@ -128,71 +145,125 @@
     </div>
 </div>
 
-<!-- Order Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1">
+
+<!-- Modal Upload Bukti Pembayaran -->
+<div class="modal fade" id="uploadPaymentProofModal" tabindex="-1" aria-labelledby="uploadPaymentProofModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Pesan Produk</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="uploadPaymentProofModalLabel">Upload Bukti Pembayaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="orderForm" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <h6 class="product-name mb-3"></h6>
+            <div class="modal-body">
+                <form method="POST" action="#" enctype="multipart/form-data">
+                    @csrf
                     <div class="mb-3">
-                        <label class="form-label">Harga</label>
-                        <div class="form-control bg-light" id="productPrice"></div>
+                        <label for="paymentProof" class="form-label">Unggah Bukti Pembayaran</label>
+                        <input type="file" name="payment_proof" id="paymentProof" class="form-control" required>
+                        <small class="text-muted">Format yang diperbolehkan: JPG, PNG, PDF. Ukuran maksimal: 2MB.</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Jumlah</label>
-                        <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
-                        <small class="text-muted">Stok tersedia: <span id="availableStock"></span></small>
+                        <label for="notes" class="form-label">Catatan (Opsional)</label>
+                        <textarea name="notes" id="notes" rows="3" class="form-control" placeholder="Tambahkan catatan jika perlu"></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Total Harga</label>
-                        <div class="form-control bg-light" id="totalPrice"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Pesan</button>
-                </div>
-            </form>
+                    <button type="submit" class="btn btn-primary w-100">Kirim Bukti Pembayaran</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Cart Modal -->
-<div class="modal fade" id="cartModal" tabindex="-1">
+
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Keranjang Anda</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="exampleModalLabel">Keranjang Anda</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <ul class="list-group" id="cartItems">
-                    <!-- Items akan dimasukkan melalui JavaScript -->
+                    @foreach($cart->items as $item)
+                    <li class="list-group-item d-flex align-items-center">
+                        <img src="{{ asset('storage/' . $item->barang->putri_gambar) }}" 
+                             alt="{{ $item->barang->putri_nama_barang }}" 
+                             class="me-3" 
+                             style="width: 70px; max-height: 100px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <h6>{{ $item->barang->putri_nama_barang }}</h6>
+                            <small>Harga Satuan: Rp{{ number_format($item->barang->putri_harga_jual, 0, ',', '.') }}</small>
+                            <br>
+                            <small>Jumlah: {{ $item->quantity }}</small>
+                            <br>
+                            <small>Subtotal: Rp{{ number_format($item->barang->putri_harga_jual * $item->quantity, 0, ',', '.') }}</small>
+                        </div>
+                        <form method="POST" action="{{ route('cart.remove', $item->id) }}" class="ms-auto">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Hapus
+                            </button>
+                        </form>
+                    </li>
+                    @endforeach
                 </ul>
                 <div class="mt-3 d-flex justify-content-between align-items-center">
                     <span>Total Harga:</span>
-                    <span id="cartTotal" class="fw-bold">Rp 0</span>
+                    <span id="cartTotal" class="fw-bold">
+                        Rp{{ number_format($total) }}
+                    </span>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <a href="#" class="btn btn-primary">Checkout</a>
+                <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadPaymentProofModal">Checkout</a>
+                {{-- <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#checkoutModal">Checkout</a> --}}
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkoutModalLabel">Checkout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Rincian Pesanan:</h5>
+                <ul id="order-summary"></ul>
+
+                <h5 class="mt-4">Total: 
+                    <strong id="totalAmount"></strong>
+                </h5>
+
+                <!-- Form Checkout -->
+                @if($cart && $cart->items->count() > 0)
+                <form id="checkoutForm" method="POST" action="{{ route('user.create-pesanan', $item->barang->putri_id_barang) }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="jumlah" class="form-label">Jumlah Barang</label>
+                        <input type="number" class="form-control" id="jumlah" name="jumlah" min="1" max="{{ $item->barang->putri_stok }}" value="1" hidden>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Konfirmasi Pembelian</button>
+                </form>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function showOrderModal(id, name, stock, price) {
     const modal = new bootstrap.Modal(document.getElementById('orderModal'));
@@ -280,6 +351,56 @@ function showCartModal() {
 function formatRupiah(number) {
     return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
+    // Update order summary and total amount in modal
+    document.querySelector('.btn-success').addEventListener('click', function() {
+        const items = @json($cart->items);  // Pass items from cart to JS
+        const orderSummary = document.getElementById('order-summary');
+        const totalAmount = document.getElementById('totalAmount');
+
+        orderSummary.innerHTML = ''; // Clear the list
+
+        let total = 0;
+        items.forEach(item => {
+            const itemTotal = item.barang.putri_harga_jual * item.quantity;
+            total += itemTotal;
+
+            const li = document.createElement('li');
+            li.textContent = `${item.barang.putri_nama_barang} - ${item.quantity} x Rp${item.barang.putri_harga_jual.toLocaleString()} = Rp${itemTotal.toLocaleString()}`;
+            orderSummary.appendChild(li);
+        });
+
+        totalAmount.textContent = `Rp${total.toLocaleString()}`;
+    });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Tambahkan event listener ke semua tombol "Add to Cart"
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const formId = `add-to-cart-form-${this.dataset.id}`;
+            const form = document.getElementById(formId);
+
+            Swal.fire({
+                title: 'Tambahkan ke Keranjang?',
+                text: "Produk ini akan ditambahkan ke keranjang Anda.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, tambahkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Submit form jika user memilih "Ya, tambahkan!"
+                }
+            });
+        });
+    });
+});
+
 
 </script>
 @endsection

@@ -26,11 +26,9 @@ class CartController extends Controller
       ->first();
 
     if ($cartItem) {
-      // Tambah quantity jika barang sudah ada
       $cartItem->quantity += 1;
       $cartItem->save();
     } else {
-      // Tambahkan barang baru ke cart
       CartItem::create([
         'cart_id'   => $cart->id,
         'barang_id' => $barang->putri_id_barang,
