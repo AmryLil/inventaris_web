@@ -81,32 +81,44 @@ class UserController extends Controller
         return view('user.riwayat_transaksi', compact('transaksi'));
     }
 
-    public function createPesanan(Request $request, $id)
+    public function createPesanan(Request $request)
     {
-        $barang = Barang::findOrFail($id);
-
+        // Validasi file bukti pembayaran
         $request->validate([
-            'jumlah' => 'required|integer|min:1|max:' . $barang->putri_stok
+            'payment_proof' => 'required|mimes:jpg,png,pdf|max:2048',
         ]);
 
-        $total_harga = $barang->putri_harga_jual * $request->jumlah;
+        // Simpan file bukti pembayaran
+        $filePath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
-        $pesanan = Pesanan::create([
-            'putri_id_barang'         => $id,
-            'putri_nama_user'         => Auth::user()->putri_nama_user,
-            'putri_jumlah_barang'     => $request->jumlah,
-            'putri_total_harga'       => $total_harga,
-            'putri_status_pembayaran' => 'pending',
-            'putri_tanggal_pesan'     => now()
-        ]);
+        // Ambil ID pengguna yang sedang login
+        $userId = Auth::user()->putri_id_user;
 
-        // Kurangi stok
-        $barang->putri_stok -= $request->jumlah;
-        $barang->save();
+        // Ambil keranjang pengguna yang sedang login
+        $cart = Cart::where('user_id', $userId)->with('items.barang')->first();
 
-        return redirect()
-            ->route('user.riwayat-transaksi')
-            ->with('success', 'Pesanan berhasil dibuat');
+        // Jika keranjang kosong atau tidak ada item di dalamnya
+        if (!$cart || $cart->items->isEmpty()) {
+            return redirect()->back()->with('error', 'Keranjang Anda kosong!');
+        }
+
+        // Loop untuk membuat pesanan berdasarkan item di keranjang
+        foreach ($cart->items as $item) {
+            Pesanan::create([
+                'putri_id_barang'         => $item->barang->putri_id_barang,  // Ambil ID barang dari relasi
+                'putri_nama_user'         => Auth::user()->putri_nama_user,  // Nama pengguna
+                'putri_jumlah_barang'     => $item->quantity,  // Jumlah barang dari keranjang
+                'putri_total_harga'       => $item->barang->putri_harga_jual * $item->quantity,  // Total harga
+                'putri_status_pembayaran' => 'pending',  // Status awal
+                'putri_tanggal_pesan'     => now(),  // Tanggal pesan
+                'putri_bukti_transfer'    => $filePath,  // Bukti pembayaran
+            ]);
+        }
+
+        // Hapus semua item dalam keranjang setelah checkout
+        $cart->items()->delete();
+
+        return redirect()->route('user.catalog')->with('success', 'Pesanan berhasil diproses!');
     }
 
     public function uploadBuktiTransfer(Request $request, $id)
@@ -116,14 +128,12 @@ class UserController extends Controller
         ]);
 
         $pesanan = Pesanan::findOrFail($id);
-
-        // Upload bukti transfer
-        $path = $request->file('bukti_transfer')->store('bukti_transfer', 'public');
+        $path    = $request->file('bukti_transfer')->store('bukti_transfer', 'public');
 
         $pesanan->putri_bukti_transfer    = $path;
         $pesanan->putri_status_pembayaran = 'verifikasi';
         $pesanan->save();
 
-        return back()->with('success', 'Bukti transfer berhasil diupload');
+        return back()->with('success', 'Bukti transfer berhasil diupload. Pesanan Anda sedang diverifikasi.');
     }
 }

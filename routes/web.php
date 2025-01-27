@@ -55,8 +55,9 @@ Route::middleware(['auth'])->prefix('user')->group(function () {
     Route::get('/profile', [UserController::class, 'profile'])->name('user.profile');
     Route::put('/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
     Route::get('/riwayat-transaksi', [UserController::class, 'riwayatTransaksi'])->name('user.riwayat-transaksi');
-    Route::post('/pesanan/{id}', [UserController::class, 'createPesanan'])->name('user.create-pesanan');
-    Route::post('/upload-bukti/{id}', [UserController::class, 'uploadBuktiTransfer'])->name('user.upload-bukti');
+    Route::post('/create-pesana', [UserController::class, 'createPesanan'])->name('user.createPesanan');
+    Route::post('/upload-bukti-transfer/{id}', [UserController::class, 'uploadBuktiTransfer'])->name('user.uploadBuktiTransfer');
+
     Route::post('/cart/add/{barangId}', [CartController::class, 'addToCart'])->name('cart.add');
     Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
     Route::delete('/cart/item/{itemId}', [CartController::class, 'removeItem'])->name('cart.remove');

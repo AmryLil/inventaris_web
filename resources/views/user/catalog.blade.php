@@ -146,37 +146,8 @@
 </div>
 
 
-<!-- Modal Upload Bukti Pembayaran -->
-<div class="modal fade" id="uploadPaymentProofModal" tabindex="-1" aria-labelledby="uploadPaymentProofModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadPaymentProofModalLabel">Upload Bukti Pembayaran</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="#" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="paymentProof" class="form-label">Unggah Bukti Pembayaran</label>
-                        <input type="file" name="payment_proof" id="paymentProof" class="form-control" required>
-                        <small class="text-muted">Format yang diperbolehkan: JPG, PNG, PDF. Ukuran maksimal: 2MB.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Catatan (Opsional)</label>
-                        <textarea name="notes" id="notes" rows="3" class="form-control" placeholder="Tambahkan catatan jika perlu"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Kirim Bukti Pembayaran</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
-
-
-
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -225,6 +196,46 @@
     </div>
 </div>
 
+<div class="modal fade" id="uploadPaymentProofModal" tabindex="-1" aria-labelledby="uploadPaymentProofModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadPaymentProofModalLabel">Upload Bukti Pembayaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ route('user.createPesanan') }}" enctype="multipart/form-data">
+                    @csrf
+
+                    <!-- Section QRIS -->
+                    <div class="mb-3 text-center">
+                        <h6>Scan QRIS untuk Pembayaran</h6>
+                        <img src="{{ asset('frame.png') }}" alt="QRIS Code" class="img-fluid mb-2" style="max-width: 200px;">
+                        <small class="text-muted d-block">Silakan pindai kode QR ini untuk melakukan pembayaran.</small>
+                    </div>
+                    
+                    <!-- Upload Bukti Pembayaran -->
+                    <div class="mb-3">
+                        <label for="paymentProof" class="form-label">Unggah Bukti Pembayaran</label>
+                        <input type="file" name="payment_proof" id="paymentProof" class="form-control" required>
+                        <small class="text-muted">Format yang diperbolehkan: JPG, PNG, PDF. Ukuran maksimal: 2MB.</small>
+                    </div>
+
+                    <!-- Catatan -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Catatan (Opsional)</label>
+                        <textarea name="notes" id="notes" rows="3" class="form-control" placeholder="Tambahkan catatan jika perlu"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Kirim Bukti Pembayaran</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -242,7 +253,7 @@
 
                 <!-- Form Checkout -->
                 @if($cart && $cart->items->count() > 0)
-                <form id="checkoutForm" method="POST" action="{{ route('user.create-pesanan', $item->barang->putri_id_barang) }}">
+                <form id="checkoutForm" method="POST" action="#">
                     @csrf
                     <div class="mb-3">
                         <label for="jumlah" class="form-label">Jumlah Barang</label>

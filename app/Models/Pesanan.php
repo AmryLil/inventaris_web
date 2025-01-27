@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pesanan extends Model
 {
-    public $timestamps = false; // Menandakan bahwa tabel tidak menggunakan timestamps
-    protected $table = 'putri_pesanan';
+    public $timestamps    = false;
+    protected $table      = 'putri_pesanan';
     protected $primaryKey = 'putri_id_pesanan';
 
     protected $fillable = [

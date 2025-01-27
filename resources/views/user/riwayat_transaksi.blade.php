@@ -107,21 +107,11 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if($item->putri_status_pembayaran == 'pending')
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-primary"
-                                                    onclick="showUploadModal({{ $item->putri_id_pesanan }})">
-                                                <i class="fas fa-upload"></i> Upload Bukti
-                                            </button>
-                                        @elseif($item->putri_bukti_transfer)
                                             <a href="{{ asset('storage/' . $item->putri_bukti_transfer) }}" 
                                                target="_blank"
                                                class="btn btn-sm btn-info">
                                                 <i class="fas fa-image"></i> Lihat Bukti
                                             </a>
-                                        @else
-                                            <span class="badge bg-secondary">Belum upload</span>
-                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
